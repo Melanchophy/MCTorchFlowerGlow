@@ -1,0 +1,57 @@
+#                             #
+#  Skript By Melancho(l/ph)y  #
+#                             #
+
+#
+# Modify to your hearts content!
+#
+
+
+
+    # System which logs the location of placed/broken torch flowers
+    # Additionally, instantly updates the block above
+
+on place of torchflower:
+    add location of event-block to {tr::torchflowers::*}
+    set block data of block at location 1 block above event-block to light[level=8]
+
+on break of torchflower:
+    remove location of event-block from {tr::torchflowers::*}
+    if block above event-block is light:
+        set block above event-block to air
+
+
+
+
+    # System which ticks active torch flowers
+    # Makes torch flowers glow
+    # Checks if there is actually a torch flower at the logged flower location
+
+every second:
+    loop {tr::torchflowers::*}:
+        if block at loop-value is not torchflower:
+            remove loop-value from {tr::torchflowers::*}
+            if block above loop-value is light:
+                set block above loop-value to air
+        else:
+            make 1 of flame at loop-value with offset vector(0.3, 0.3, 0.3) with extra 0.02
+            if block above loop-value is air or light:
+                set {_block} to "light[level=%ceil(random number between 7 and 10)%]"
+                set block data of block at location 1 block above loop-value to {_block} parsed as block data
+
+
+
+
+    # Down below, we check for all torch flowers inside the newly loaded/unloaded and make it start/stop ticking
+    # Intended to improve performance on large scales
+
+on player chunk load:
+    loop {tr::torchflowersinactive::*} where [input's chunk is event-chunk]:
+        add loop-value to {tr::torchflowers::*}
+        remove loop-value from {tr::torchflowersinactive::*}
+    
+
+on player chunk unload:
+    loop {tr::torchflowers::*} where [input's chunk is event-chunk]:
+        add loop-value to {tr::torchflowersinactive::*}
+        remove loop-value from {tr::torchflowers::*}
